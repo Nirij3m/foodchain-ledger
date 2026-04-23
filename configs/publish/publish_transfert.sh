@@ -161,7 +161,7 @@ echo ""
 echo "  Publication en cours..."
 echo ""
 
-TXID=$(multichain-cli "$CHAIN" publish "$STREAM" "$KEYS" "$DATA")
+TXID=$(multichain-cli "$CHAIN" publish "$STREAM" "$KEYS" "$DATA" offchain)
 
 if [ $? -eq 0 ]; then
   echo "  ✓ Transfert publié avec succès"
