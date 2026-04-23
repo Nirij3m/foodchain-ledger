@@ -1,0 +1,80 @@
+services:
+
+  producteur-node:
+    build: .
+    working_dir: /root
+    environment:
+      - RPC_USER=uqac
+      - RPC_PASSWORD=foodchainsafety
+    command:
+      - bash
+      - -c
+      -
+        set -e
+
+        multichain-util create org_blockchain
+        
+        printf 'rpcuser=%s\nrpcpassword=%s\n' \"$$RPC_USER\" \"$$RPC_PASSWORD\" > ~/.multichain/org_blockchain/multichain.conf
+
+        echo 'Configuration générée :' &&
+        cat ~/.multichain/org_blockchain/multichain.conf
+
+        echo 'Démarrage du service :' &&
+        multichaind org_blockchain -daemon -explorersupport=2
+
+        exec sh
+
+    ports:
+      - "6790:6790"
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./configs/publish/publish_reception.sh:/root/chainscripts/publish_reception.sh:ro
+      - ./configs/publish/publish_alert.sh:/root/chainscripts/publish_alert.sh:ro 
+      - ./configs/seeds/seed_producteur.sh:/root/chainscripts/seed_producteur.sh:ro
+    networks:
+      - org_network
+
+  transporteur-node:
+    build: .
+    ports:
+      - "6791:6790"
+    tty: true
+    stdin_open: true
+    networks:
+      - org_network
+    volumes:
+      - ./configs/publish/publish_transfer.sh:/root/chainscripts/publish_transfer.sh:ro
+      - ./configs/publish/publish_alert.sh:/root/chainscripts/publish_alert.sh:ro 
+      - ./configs/seeds/seed_transporteur.sh:/root/chainscripts/seed_transporteur.sh:ro
+
+  distributeur-a-node:
+    build: .
+    ports:
+      - "6792:6790"
+    tty: true
+    stdin_open: true
+    networks:
+      - org_network
+    volumes:
+      - ./configs/publish/publish_reception.sh:/root/chainscripts/publish_reception.sh:ro
+      - ./configs/publish/publish_alert.sh:/root/chainscripts/publish_alert.sh:ro 
+      - ./configs/seeds/seed_distributeur_a.sh:/root/chainscripts/seed_distributeur_a.sh:ro
+
+  distributeur-b-node:
+    build: .
+    ports:
+      - "6793:6790"
+    tty: true
+    stdin_open: true
+    networks:
+      - org_network
+    volumes:
+       - ./configs/publish/publish_reception.sh:/root/chainscripts/publish_reception.sh:ro
+       - ./configs/publish/publish_alert.sh:/root/chainscripts/publish_alert.sh:ro 
+       - ./configs/seeds/seed_distributeur_b.sh:/root/chainscripts/seed_distributeur_b.sh:ro
+
+
+networks:
+  org_network:
+    driver: bridge
